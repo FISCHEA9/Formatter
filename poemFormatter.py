@@ -16,7 +16,8 @@ def Formatstanza(txt, eols = ['. ', ', ', '? ', '! ', ': ']):
 	eols = eols + eol2 # combined list
 	
 	# remove double spaces
-	txt = " ".join(txt.split())
+	while "  " in txt:
+		txt = txt.replace("  ", " ")
 	txt = spellCheck(txt, "i", "I")
 	
 	# finally, add linebreaks 
@@ -43,6 +44,7 @@ def capitalizeSentences(txt):
 def spellCheck(txt, word, changeTo):
 	# changes all instances of word to changeTo, but checks to make sure 
 	#`word` is not a section of another word (scunthorpe check)
+	# DO NOT use this to fuck with duplicate spaces 
 	
 	# fixes words before a punctuation
 	punctuation = ['.', ',', '?', '!', ':', " "]
@@ -59,9 +61,10 @@ def assignStrIdx(txt, idx, assignment, clr=Theme.default):
 	else: finality = txt[idx + len(assignment):]
 	
 	return txt[:idx] + clr + assignment  + Theme.default + finality
-def strInputLoop(inputText,lnBrk='',forceUpper = False, minLen=-1,maxLen=-1,validChars=''):
+def strInputLoop(inputText,lnBrk='',forceUpper = False, minLen=-1,maxLen=-1,validChars='',skip=False):
 	# runs until a string meets the requirements specified
-	bad = True
+	bad = not skip
+	output = '' # avoiding errors on skip
 	while bad:
 		bad = False
 		print(lnBrk)
@@ -85,11 +88,10 @@ def strInputLoop(inputText,lnBrk='',forceUpper = False, minLen=-1,maxLen=-1,vali
 					"Input has invalid characters"
 					break
 	return output
-def 	boolInputLoop(inputText,trues='',falses='',lnBrk='', forceUpper=True):
+def 	boolInputLoop(inputText,trues='',falses='',lnBrk='', forceUpper=True,skip=False):
 	# input trues/falses as strings to check for single chars
 	# or as [str] to check for whole strings
-	bad = True
-	while bad:
+	while not skip:
 		print(lnBrk)
 		txt = input(inputText)
 		if forceUpper:
@@ -101,6 +103,22 @@ def 	boolInputLoop(inputText,trues='',falses='',lnBrk='', forceUpper=True):
 			if txt == check:
 				return False
 		print(lnBrk + "Invalid selection")
+	return
+def multiLineInput(inputText,explainText="Enter unformatted text; enter with blank/no text when done\
+				   \nType in a lone period in a line for a blank line.",lnBrk="",\
+				   finishText="",blankLine="."):
+	print(lnBrk+explainText)
+	allTxt = []
+	while True:
+		newTxt = input(inputText)
+		if newTxt == finishText:
+			break
+		if newTxt == blankLine:
+			newTxt = ""
+		allTxt.append(newTxt)
+	allTxt = "\n".join(allTxt)
+	return allTxt
+	
 
 
 
@@ -110,7 +128,7 @@ def 	boolInputLoop(inputText,trues='',falses='',lnBrk='', forceUpper=True):
 
 lnBrk = "\n\n----------------------------------------------------------------------\n\n"
 ## program start
-print(Theme.default + "poemFormatter 0.2.0.1" )
+print(Theme.default + "poemFormatter 0.2.1" )
 
 # cmd setup
 colorScheme= strInputLoop(\
@@ -128,6 +146,7 @@ colorScheme= strInputLoop(\
 				minLen=2,maxLen=2,validChars="0123456789ABCDEF",forceUpper = True,lnBrk=lnBrk)
 Theme.setAttr("default", Theme.TwoCharScheme(colorScheme))
 deft = Theme.default
+lnBrk = deft + lnBrk
 print(deft)
 subprocess.run("color " + colorScheme, shell=True)
 
@@ -148,12 +167,12 @@ if boolInputLoop("This program changes the color of text that is autocapitalized
 done = False
 stanzas = []
 while not done:
-	curstanza = input(deft + "\nInput unformatted stanza: \n\n")
+	curstanza = multiLineInput("",lnBrk=lnBrk)
 	
 	curstanza = Formatstanza(curstanza)
 	stanzas.append(curstanza)
 	
-	print("\n\n\nformatted stanza:" + lnBrk + curstanza + lnBrk)
+	print(deft+"\n\n\nformatted stanza:" + lnBrk + curstanza + lnBrk)
 	
 	if skipSecondstanza:
 		break
@@ -165,4 +184,4 @@ while not done:
 finalString = "\n\n".join(stanzas)
 print("\n\n\n\nfinal:" + lnBrk + finalString + lnBrk)
 
-strInputLoop("\n\nScript concluded. Type \"done\" to close program.\n", minLen=4, maxLen=5, validChars='done') # mild typos allowed
+strInputLoop("\n\nScript concluded. Type \"done\" to close program.\n", minLen=4, maxLen=5, validChars='done',skip=skipDone) # mild typos allowed
